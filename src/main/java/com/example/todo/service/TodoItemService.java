@@ -3,6 +3,7 @@ package com.example.todo.service;
 import com.example.todo.entity.TodoItem;
 import com.example.todo.model.TodoItemModel;
 import com.example.todo.repository.TodoItemRepository;
+import com.example.todo.utils.DateTimeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -19,20 +21,23 @@ public class TodoItemService {
     @Autowired
     private TodoItemRepository todoItemRepository;
 
+    @Autowired
+    private ResponseConfigService responseConfigService;
+
     public ResponseEntity<List<TodoItemModel>> getAllTask() {
         List<TodoItem> todoItems = (List<TodoItem>) todoItemRepository.findAll();
         ResponseEntity<List<TodoItem>> entities = new ResponseEntity<>(todoItems, HttpStatus.OK);
 
         ResponseEntity<List<TodoItemModel>> todoModels = convertEntityToModel(entities);
-        return todoModels;
+        return (ResponseEntity<List<TodoItemModel>>) responseConfigService.responseConfig(todoModels);
     }
 
     public ResponseEntity<TodoItemModel> findTaskById(long id) {
-        TodoItem todoItem = todoItemRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("not found"));
+        TodoItem todoItem = todoItemRepository.findById(id).orElse(new TodoItem());
 
-        TodoItemModel todoItemModel = convertEntityToModel(todoItem);
+        ResponseEntity<TodoItemModel> todoItemModel = convertEntityToModel(todoItem);
 
-        return new ResponseEntity<>(todoItemModel, HttpStatus.OK);
+        return (ResponseEntity<TodoItemModel>) responseConfigService.responseConfig(todoItemModel);
     }
 
     public void update(long id, TodoItemModel updateTodo) {
@@ -43,7 +48,7 @@ public class TodoItemService {
         todoItem.setId(oldTodoItem.getId());
         todoItem.setDescription(updateTodo.getDescription());
         todoItem.setComplete(updateTodo.isComplete());
-        todoItem.setModifiedDate(Instant.now());
+        todoItem.setModifiedDate(DateTimeUtils.getDateNow());
         todoItem.setCreatedDate(oldTodoItem.getCreatedDate());
         todoItemRepository.save(todoItem);
     }
@@ -73,13 +78,20 @@ public class TodoItemService {
         return new ResponseEntity<>(todoItemModels, HttpStatus.OK);
     }
 
-    private TodoItemModel convertEntityToModel(TodoItem item) {
-        return new TodoItemModel(
+    private ResponseEntity<TodoItemModel> convertEntityToModel(TodoItem item) {
+
+        if(item.getDescription() == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        TodoItemModel todoItemModel = new TodoItemModel(
                 item.getId(),
                 item.getDescription(),
                 item.isComplete(),
                 item.getCreatedDate(),
                 item.getModifiedDate());
+
+        return new ResponseEntity<>(todoItemModel, HttpStatus.OK);
     }
 
 

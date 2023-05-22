@@ -25,10 +25,10 @@ public class TodoItemModel {
 
     @Getter
     @Setter
-    private Instant createdDate;
+    private String createdDate;
 
     @Getter
     @Setter
-    private Instant modifiedDate;
+    private String modifiedDate;
 
 }

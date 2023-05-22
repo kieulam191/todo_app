@@ -1,5 +1,6 @@
 package com.example.todo.entity;
 
+import com.example.todo.utils.DateTimeUtils;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
@@ -30,18 +31,18 @@ public class TodoItem {
 
     @Getter
     @Setter
-    private Instant createdDate;
+    private String createdDate;
 
     @Getter
     @Setter
-    private Instant modifiedDate;
+    private String modifiedDate;
 
 
     public TodoItem(String description) {
         this.description = description;
         this.complete = false;
-        this.createdDate = Instant.now();
-        this.modifiedDate = Instant.now();
+        this.createdDate = DateTimeUtils.getDateNow();
+        this.modifiedDate = DateTimeUtils.getDateNow();
     }
 
     @Override
